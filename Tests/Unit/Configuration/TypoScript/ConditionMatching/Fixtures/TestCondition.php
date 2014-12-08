@@ -23,7 +23,7 @@ class TestCondition extends \TYPO3\CMS\Core\Configuration\TypoScript\ConditionMa
 	 * Test matcher tests input parameters.
 	 *
 	 * @param array $conditionParameters
-	 * @throws \RuntimeException
+	 * @throws TestConditionException
 	 * @return bool
 	 */
 	public function matchCondition(array $conditionParameters) {
