@@ -14,9 +14,11 @@ namespace TYPO3\CMS\Frontend;
  * The TYPO3 project - inspiring people to share!
  */
 
+use TYPO3\CMS\Core\Exception as CoreException;
+
 /**
- * A generic frontend exception
+ * A generic Frontend exception
  */
-class Exception extends \Exception
+class Exception extends CoreException
 {
 }
