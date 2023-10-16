@@ -562,7 +562,7 @@ class AbstractPlugin
         // Initializing variables:
         $pointer = (int)($this->piVars[$pointerName] ?? 0);
         $count = (int)($this->internal['res_count'] ?? 0);
-        $results_at_a_time = MathUtility::forceIntegerInRange(($this->internal['results_at_a_time'] ?? 1), 1, 1000);
+        $results_at_a_time = MathUtility::forceIntegerInRange(($this->internal['results_at_a_time'] ?? 1), 1, 25000);
         $totalPages = (int)ceil($count / $results_at_a_time);
         $maxPages = MathUtility::forceIntegerInRange($this->internal['maxPages'], 1, 100);
         $pi_isOnlyFields = (bool)$this->pi_isOnlyFields($this->pi_isOnlyFields);
@@ -1156,7 +1156,7 @@ class AbstractPlugin
 
             // Limit data:
             $pointer = (int)$this->piVars['pointer'];
-            $results_at_a_time = MathUtility::forceIntegerInRange(($this->internal['results_at_a_time'] ?? 1), 1, 1000);
+            $results_at_a_time = MathUtility::forceIntegerInRange(($this->internal['results_at_a_time'] ?? 1), 1, 25000);
             $queryBuilder->setFirstResult($pointer * $results_at_a_time)
                 ->setMaxResults($results_at_a_time);
 
