@@ -21,6 +21,7 @@ use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Event listeners are able to manipulate fetched page content, which is already grouped by column
+ * @todo Consider deprecation due to introduction of ResolveContentAreasEvent
  */
 final class AfterContentHasBeenFetchedEvent
 {
