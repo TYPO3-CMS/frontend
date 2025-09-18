@@ -15,7 +15,7 @@ declare(strict_types=1);
  * The TYPO3 project - inspiring people to share!
  */
 
-namespace TYPO3\CMS\Frontend\Tests\Unit\Resource;
+namespace TYPO3\CMS\Frontend\Tests\Functional\Resource;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\IgnoreDeprecations;
@@ -26,11 +26,18 @@ use TYPO3\CMS\Core\Resource\Exception\InvalidFileException;
 use TYPO3\CMS\Core\Resource\Exception\InvalidFileNameException;
 use TYPO3\CMS\Core\Resource\Exception\InvalidPathException;
 use TYPO3\CMS\Frontend\Resource\FilePathSanitizer;
-use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
+use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
 
-final class FilePathSanitizerTest extends UnitTestCase
+#[IgnoreDeprecations]
+final class FilePathSanitizerTest extends FunctionalTestCase
 {
     protected bool $backupEnvironment = true;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->expectUserDeprecationMessage('FilePathSanitizer is deprecated and will be removed with TYPO3 v15. Use SystemResource API instead');
+    }
 
     /**
      * Sets up Environment to simulate Composer mode and a frontend web request
@@ -56,7 +63,6 @@ final class FilePathSanitizerTest extends UnitTestCase
         if (!is_file($fakePublicDir . '/index.php')) {
             file_put_contents($fakePublicDir . '/index.php', '<?php');
         }
-        $this->testFilesToDelete[] = $fakePublicDir . '/index.php';
     }
 
     #[Test]
@@ -161,7 +167,7 @@ final class FilePathSanitizerTest extends UnitTestCase
                 true,
             ],
             'absolute paths are made relative, even when second argument is true' => [
-                Environment::getFrameworkBasePath() . '/core/Resources/Private/Templates/PageRenderer.html',
+                '{Environment::getFrameworkBasePath}/core/Resources/Private/Templates/PageRenderer.html',
                 'typo3/sysext/core/Resources/Private/Templates/PageRenderer.html',
                 true,
             ],
@@ -173,6 +179,7 @@ final class FilePathSanitizerTest extends UnitTestCase
     public function sanitizeCorrectlyResolvesPathsAndUrls(string $givenPathOrUrl, string $expectedPathOrUrl, ?bool $allowExtensionPath = null): void
     {
         $subject = new FilePathSanitizer();
+        $givenPathOrUrl = str_replace('{Environment::getFrameworkBasePath}', Environment::getFrameworkBasePath(), $expectedPathOrUrl);
         self::assertSame($expectedPathOrUrl, $subject->sanitize($givenPathOrUrl, $allowExtensionPath));
     }
 
@@ -196,13 +203,5 @@ final class FilePathSanitizerTest extends UnitTestCase
     {
         $this->expectException(InvalidPathException::class);
         (new FilePathSanitizer())->sanitize('something/../else');
-    }
-
-    #[Test]
-    #[IgnoreDeprecations]
-    public function sanitizeCorrectlyResolvesPathsForLegacySystemsEvenForPrivateResources(): void
-    {
-        $subject = new FilePathSanitizer();
-        self::assertSame('typo3/sysext/core/Resources/Private/Templates/PageRenderer.html', $subject->sanitize('EXT:core/Resources/Private/Templates/PageRenderer.html'));
     }
 }

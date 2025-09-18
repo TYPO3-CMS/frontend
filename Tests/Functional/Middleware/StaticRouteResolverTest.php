@@ -15,7 +15,7 @@ declare(strict_types=1);
  * The TYPO3 project - inspiring people to share!
  */
 
-namespace TYPO3\CMS\Frontend\Tests\Unit\Middleware;
+namespace TYPO3\CMS\Frontend\Tests\Functional\Middleware;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
@@ -24,23 +24,20 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use TYPO3\CMS\Core\Http\HtmlResponse;
 use TYPO3\CMS\Core\Http\NullResponse;
-use TYPO3\CMS\Core\Http\RequestFactory;
 use TYPO3\CMS\Core\Http\ServerRequest;
-use TYPO3\CMS\Core\LinkHandling\LinkService;
 use TYPO3\CMS\Core\Site\Entity\Site;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\Middleware\StaticRouteResolver;
-use TYPO3\CMS\Frontend\Resource\FilePathSanitizer;
-use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
+use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
 
-final class StaticRouteResolverTest extends UnitTestCase
+final class StaticRouteResolverTest extends FunctionalTestCase
 {
+    protected bool $initializeDatabase = false;
     protected RequestHandlerInterface $requestHandler;
 
     protected function setUp(): void
     {
         parent::setUp();
-        // A request handler which expects a site to be found.
         $this->requestHandler = new class () implements RequestHandlerInterface {
             public function handle(ServerRequestInterface $request): ResponseInterface
             {
@@ -52,10 +49,7 @@ final class StaticRouteResolverTest extends UnitTestCase
     #[Test]
     public function invalidStaticRouteDoesNotWork(): void
     {
-        $requestFactoryMock = $this->getMockBuilder(RequestFactory::class)->disableOriginalConstructor()->getMock();
-        $linkServiceMock = $this->getMockBuilder(LinkService::class)->disableOriginalConstructor()->getMock();
-        $filePathSanitizer = new FilePathSanitizer();
-        $subject = new StaticRouteResolver($requestFactoryMock, $linkServiceMock, $filePathSanitizer);
+        $subject = $this->get(StaticRouteResolver::class);
         $site = new Site('lotus-flower', 13, [
             'base' => 'https://example.com/',
             'languages' => [
@@ -115,10 +109,7 @@ final class StaticRouteResolverTest extends UnitTestCase
     #[Test]
     public function assetRoutesProvideProperResponse(): void
     {
-        $requestFactoryMock = $this->getMockBuilder(RequestFactory::class)->disableOriginalConstructor()->getMock();
-        $linkServiceMock = $this->getMockBuilder(LinkService::class)->disableOriginalConstructor()->getMock();
-        $filePathSanitizer = new FilePathSanitizer();
-        $subject = new StaticRouteResolver($requestFactoryMock, $linkServiceMock, $filePathSanitizer);
+        $subject = $this->get(StaticRouteResolver::class);
         $site = new Site('lotus-flower', 13, [
             'base' => 'https://example.com/',
             'languages' => [
@@ -193,10 +184,7 @@ final class StaticRouteResolverTest extends UnitTestCase
     #[DataProvider('assetRoutesResponseTriggersExceptionForInvalidAssetDataProvider')]
     public function assetRoutesResponseTriggersExceptionForInvalidAsset(string $route, string $asset, int $exceptionCode): void
     {
-        $requestFactoryMock = $this->getMockBuilder(RequestFactory::class)->disableOriginalConstructor()->getMock();
-        $linkServiceMock = $this->getMockBuilder(LinkService::class)->disableOriginalConstructor()->getMock();
-        $filePathSanitizer = new FilePathSanitizer();
-        $subject = new StaticRouteResolver($requestFactoryMock, $linkServiceMock, $filePathSanitizer);
+        $subject = $this->get(StaticRouteResolver::class);
         $site = new Site('lotus-flower', 13, [
             'base' => 'https://example.com/',
             'languages' => [
