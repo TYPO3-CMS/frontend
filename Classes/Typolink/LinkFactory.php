@@ -90,7 +90,7 @@ readonly class LinkFactory
 
         // Check, if the target is coded as a JS open window link:
         $linkResult = $this->addJavaScriptOpenWindowInformationAttributes($linkResult, $linkConfiguration, $contentObjectRenderer);
-        $linkResult = $this->addSecurityRelValues($linkResult);
+        $linkResult = $this->addSecurityRelValues($linkResult, $contentObjectRenderer);
         // Title attribute, will override any title attribute from ->addAdditionalAnchorTagAttributes()
         $title = $title ?: trim((string)$contentObjectRenderer->stdWrapValue('title', $linkConfiguration));
         if (!empty($title)) {
@@ -300,21 +300,31 @@ readonly class LinkFactory
         return $linkResult;
     }
 
-    protected function addSecurityRelValues(LinkResultInterface $linkResult): LinkResultInterface
+    protected function addSecurityRelValues(LinkResultInterface $linkResult, ContentObjectRenderer $contentObjectRenderer): LinkResultInterface
     {
         $target = (string)($linkResult->getTarget() ?: $linkResult->getAttribute('data-window-target'));
         if (in_array($target, ['', null, '_self', '_parent', '_top'], true) || $this->isInternalUrl($linkResult->getUrl())) {
             return $linkResult;
         }
-        $relAttributeValue = 'noreferrer';
+
+        // build array of existing rel attribute values
         if ($linkResult->getAttribute('rel') !== null) {
-            $existingAttributeValue = $linkResult->getAttribute('rel');
-            $relAttributeValue = implode(' ', array_unique(array_merge(
-                [$relAttributeValue],
-                GeneralUtility::trimExplode(' ', $existingAttributeValue)
-            )));
+            $relAttributeArray = GeneralUtility::trimExplode(' ', $linkResult->getAttribute('rel'));
+        } else {
+            $relAttributeArray = [];
         }
-        return $linkResult->withAttribute('rel', $relAttributeValue);
+
+        // neither "noopener" nor "noreferrer" exists
+        if (!array_intersect(['noopener', 'noreferrer'], $relAttributeArray)) {
+            $typoScriptConfigArray = $contentObjectRenderer->getRequest()->getAttribute('frontend.typoscript')?->getConfigArray();
+            if (isset($typoScriptConfigArray['linkSecurityRelValue']) && strtolower($typoScriptConfigArray['linkSecurityRelValue']) === 'noopener') {
+                $relAttributeArray[] = 'noopener';
+            } else {
+                $relAttributeArray[] = 'noreferrer';
+            }
+        }
+
+        return $linkResult->withAttribute('rel', implode(' ', $relAttributeArray));
     }
 
     /**
