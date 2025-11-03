@@ -19,6 +19,7 @@ namespace TYPO3\CMS\Frontend\Tests\Functional\ContentObject;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
+use TYPO3\CMS\Core\Core\SystemEnvironmentBuilder;
 use TYPO3\CMS\Core\Http\ServerRequest;
 use TYPO3\CMS\Core\Imaging\ImageResource;
 use TYPO3\CMS\Core\Localization\Locale;
@@ -254,12 +255,13 @@ final class ImageContentObjectTest extends FunctionalTestCase
             ->with(self::equalTo('testImageName'))
             ->willReturn(new ImageResource(100, 100, '', 'bar-file.jpg', 'bar-file.jpg'));
 
+        $request = (new ServerRequest())->withAttribute('applicationType', SystemEnvironmentBuilder::REQUESTTYPE_BE);
         $pageRenderer = $this->get(PageRenderer::class);
-        $pageRenderer->setLanguage(new Locale());
-        $pageRenderer->setDocType(DocType::createFromConfigurationKey($doctype));
+        $pageRenderer->setLanguage(new Locale(), $request);
+        $pageRenderer->setDocType(DocType::createFromConfigurationKey($doctype), $request);
 
         $subject = $this->getAccessibleMock(ImageContentObject::class, null, [$this->get(MarkerBasedTemplateService::class)]);
-        $subject->setRequest(new ServerRequest());
+        $subject->setRequest($request);
         $subject->setContentObjectRenderer($cObj);
         $result = $subject->_call('getImageSourceCollection', $layoutKey, $configuration, 'testImageName');
 

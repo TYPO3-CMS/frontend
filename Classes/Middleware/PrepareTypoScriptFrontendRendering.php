@@ -228,7 +228,7 @@ final readonly class PrepareTypoScriptFrontendRendering implements MiddlewareInt
                 // The createLocale() call is needed in order to resolve dependencies from the Locales class
                 $locale = GeneralUtility::makeInstance(Locales::class)->createLocale((string)$language->getLocale());
             }
-            $this->pageRenderer->setLanguage($locale);
+            $this->pageRenderer->setLanguage($locale, $request);
             $pageParts->setPageRendererSubstitutionHash(md5(StringUtility::getUniqueId()));
             $pageParts->setPageCacheGeneratedTimestamp($GLOBALS['EXEC_TIME']);
         }

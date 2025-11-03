@@ -972,8 +972,9 @@ content="benni">',
     public function stdWrap_br(string $expected, string $input, ?string $doctype): void
     {
         $pageRenderer = $this->get(PageRenderer::class);
-        $pageRenderer->setLanguage(new Locale());
-        $pageRenderer->setDocType(DocType::createFromConfigurationKey($doctype));
+        $request = (new ServerRequest())->withAttribute('applicationType', SystemEnvironmentBuilder::REQUESTTYPE_BE);
+        $pageRenderer->setLanguage(new Locale(), $request);
+        $pageRenderer->setDocType(DocType::createFromConfigurationKey($doctype), $request);
         $subject = $this->get(ContentObjectRenderer::class);
         self::assertSame($expected, $subject->stdWrap_br($input));
     }

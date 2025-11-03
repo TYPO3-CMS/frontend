@@ -126,7 +126,7 @@ readonly class RequestHandler implements RequestHandlerInterface
             $this->timeTracker->push('Page generation');
 
             $docType = DocType::createFromConfigurationKey($typoScriptConfigArray['doctype'] ?? '');
-            $this->pageRenderer->setDocType($docType);
+            $this->pageRenderer->setDocType($docType, $request);
 
             // Content generation
             $this->timeTracker->incStackPointer();
@@ -270,7 +270,7 @@ readonly class RequestHandler implements RequestHandlerInterface
             return $this->pageRenderer->renderPageWithUncachedObjects($pageParts->getPageRendererSubstitutionHash());
         }
         // Render complete page
-        return $this->pageRenderer->render();
+        return $this->pageRenderer->render($request);
     }
 
     /**
@@ -304,7 +304,7 @@ readonly class RequestHandler implements RequestHandlerInterface
         $titleTagContent = $this->generatePageTitle($request);
         $this->pageRenderer->setTitle($titleTagContent);
         $pageParts = $request->getAttribute('frontend.page.parts');
-        $content = $this->pageRenderer->renderJavaScriptAndCssForProcessingOfUncachedContentObjects($content, $pageParts->getPageRendererSubstitutionHash());
+        $content = $this->pageRenderer->renderJavaScriptAndCssForProcessingOfUncachedContentObjects($request, $content, $pageParts->getPageRendererSubstitutionHash());
         // Replace again, because header and footer data and page renderer replacements may introduce additional placeholders (see #44825)
         $content = $this->recursivelyReplaceIntPlaceholdersInContent($request, $content);
         $this->timeTracker->pull();
@@ -757,7 +757,6 @@ readonly class RequestHandler implements RequestHandlerInterface
                 $value = trim((string)$cObj->stdWrap($nodeValue, $metaTagTypoScript[$key . '.']));
                 if ($value === '' && !empty($properties['value'])) {
                     $value = $properties['value'];
-                    $replace = false;
                 }
             } else {
                 $value = $properties;
