@@ -15,22 +15,6 @@ declare(strict_types=1);
  * The TYPO3 project - inspiring people to share!
  */
 
-namespace TYPO3\CMS\Frontend\Content;
-
-enum ContentSlideMode
-{
-    case None;
-    case Slide;
-    case Collect;
-    case CollectReverse;
-
-    public static function tryFrom(?string $slideMode): ContentSlideMode
-    {
-        return match ($slideMode) {
-            'slide' => self::Slide,
-            'collect' => self::Collect,
-            'collectReverse' => self::CollectReverse,
-            default => self::None,
-        };
-    }
-}
+return [
+    'TYPO3\\CMS\\Frontend\\Content\\ContentSlideMode' => \TYPO3\CMS\Core\Page\ContentSlideMode::class,
+];
