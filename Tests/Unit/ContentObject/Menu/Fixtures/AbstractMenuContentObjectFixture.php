@@ -18,6 +18,8 @@ namespace TYPO3\CMS\Frontend\Tests\Unit\ContentObject\Menu\Fixtures;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Cache\Frontend\FrontendInterface;
 use TYPO3\CMS\Core\Cache\Frontend\NullFrontend;
+use TYPO3\CMS\Core\Domain\Page;
+use TYPO3\CMS\Core\Domain\RecordInterface;
 use TYPO3\CMS\Core\Domain\Repository\PageRepository;
 use TYPO3\CMS\Frontend\ContentObject\Menu\AbstractMenuContentObject;
 use TYPO3\CMS\Frontend\Typolink\LinkResultInterface;
@@ -49,5 +51,10 @@ final class AbstractMenuContentObjectFixture extends AbstractMenuContentObject
     protected function getRuntimeCache(): FrontendInterface
     {
         return new NullFrontend('testing');
+    }
+
+    protected function createPageObject(array $page): RecordInterface
+    {
+        return new Page($page);
     }
 }

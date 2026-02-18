@@ -35,6 +35,7 @@ use TYPO3\CMS\Core\Database\Query\Restriction\DeletedRestriction;
 use TYPO3\CMS\Core\DataHandling\PageDoktypeRegistry;
 use TYPO3\CMS\Core\Domain\Access\RecordAccessVoter;
 use TYPO3\CMS\Core\Domain\Page;
+use TYPO3\CMS\Core\Domain\RecordFactory;
 use TYPO3\CMS\Core\Domain\Repository\PageRepository;
 use TYPO3\CMS\Core\Error\Http\LinkedPageNotResolvableException;
 use TYPO3\CMS\Core\Error\Http\PageNotFoundException;
@@ -88,6 +89,7 @@ class PageLinkBuilder extends AbstractTypolinkBuilder implements TypolinkBuilder
         protected readonly PageTypeLinkResolver $pageTypeLinkResolver,
         protected readonly LoggerInterface $logger,
         protected readonly PageDoktypeRegistry $pageDoktypeRegistry,
+        protected readonly RecordFactory $recordFactory,
     ) {}
 
     public function buildLink(array $linkDetails, array $configuration, ServerRequestInterface $request, string $linkText = ''): LinkResultInterface
@@ -503,7 +505,7 @@ class PageLinkBuilder extends AbstractTypolinkBuilder implements TypolinkBuilder
         // This is used when a page to a translated page is executed directly.
 
         if (isset($configuration['page']) && $configuration['page'] instanceof Page) {
-            $page = $configuration['page']->getTranslationSource()?->toArray() ?? $configuration['page']->toArray();
+            $page = $configuration['page']->getTranslationSource()?->toArray(true) ?? $configuration['page']->toArray(true);
         }
         // A page with doktype external and ?showModal=1 in url field leads to recursion in HMENU/Sitemap.
         // In the second call of this function $linkDetails['pageuid'] is different (=current page) to uid of Page
@@ -626,7 +628,7 @@ class PageLinkBuilder extends AbstractTypolinkBuilder implements TypolinkBuilder
 
         $targetPageId = (int)($page['l10n_parent'] > 0 ? $page['l10n_parent'] : $page['uid']);
         $queryParameters['_language'] = $siteLanguageOfTargetPage;
-        $pageObject = new Page($page);
+        $pageObject = $this->recordFactory->createFromDatabaseRow('pages', $page);
 
         if ($fragment
             && $useAbsoluteUrl === false

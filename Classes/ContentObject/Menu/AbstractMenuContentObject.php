@@ -25,7 +25,8 @@ use TYPO3\CMS\Core\Context\LanguageAspect;
 use TYPO3\CMS\Core\Context\LanguageAspectFactory;
 use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
-use TYPO3\CMS\Core\Domain\Page;
+use TYPO3\CMS\Core\Domain\RecordFactory;
+use TYPO3\CMS\Core\Domain\RecordInterface;
 use TYPO3\CMS\Core\Domain\Repository\PageRepository;
 use TYPO3\CMS\Core\Site\Entity\Site;
 use TYPO3\CMS\Core\TimeTracker\TimeTracker;
@@ -1619,7 +1620,7 @@ abstract class AbstractMenuContentObject
         if ($page['sectionIndex_uid'] ?? false) {
             $conf['section'] = $page['sectionIndex_uid'];
         }
-        $conf['page'] = new Page($page);
+        $conf['page'] = $this->createPageObject($page);
 
         $backupData = $this->parent_cObj->data;
         $this->parent_cObj->data = $page;
@@ -1966,5 +1967,10 @@ abstract class AbstractMenuContentObject
             }
         }
         return [];
+    }
+
+    protected function createPageObject(array $page): RecordInterface
+    {
+        return GeneralUtility::makeInstance(RecordFactory::class)->createFromDatabaseRow('pages', $page);
     }
 }
