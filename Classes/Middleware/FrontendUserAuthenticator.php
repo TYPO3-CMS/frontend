@@ -27,7 +27,7 @@ use Psr\Log\LoggerAwareTrait;
 use Symfony\Component\RateLimiter\LimiterInterface;
 use TYPO3\CMS\Core\Authentication\Event\AfterUserLoggedInEvent;
 use TYPO3\CMS\Core\Context\Context;
-use TYPO3\CMS\Core\RateLimiter\RateLimiterFactory;
+use TYPO3\CMS\Core\RateLimiter\RateLimiterFactoryInterface;
 use TYPO3\CMS\Core\RateLimiter\RequestRateLimitedException;
 use TYPO3\CMS\Core\Session\UserSessionManager;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -43,7 +43,7 @@ class FrontendUserAuthenticator implements MiddlewareInterface, LoggerAwareInter
 
     public function __construct(
         protected readonly Context $context,
-        protected readonly RateLimiterFactory $rateLimiterFactory,
+        protected readonly RateLimiterFactoryInterface $rateLimiterFactory,
         protected readonly EventDispatcherInterface $eventDispatcher
     ) {}
 
@@ -99,7 +99,7 @@ class FrontendUserAuthenticator implements MiddlewareInterface, LoggerAwareInter
         if (!$user->isActiveLogin($request)) {
             return null;
         }
-        $loginRateLimiter = $this->rateLimiterFactory->createLoginRateLimiter($user, $request);
+        $loginRateLimiter = $this->rateLimiterFactory->createLoginRateLimiter($request, $user->loginType);
         $limit = $loginRateLimiter->consume();
         if (!$limit->isAccepted()) {
             $this->logger->debug('Login request has been rate limited for IP address {ipAddress}', ['ipAddress' => $request->getAttribute('normalizedParams')->getRemoteAddress()]);
