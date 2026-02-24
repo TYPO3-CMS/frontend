@@ -25,8 +25,13 @@ use TYPO3\CMS\Frontend\Typolink\LinkResultInterface;
 
 final class AbstractTypolinkBuilderFixture extends AbstractTypolinkBuilder
 {
+    public ?string $lastLinkText = null;
+    public ?string $lastTarget = null;
+
     public function build(array &$linkDetails, string $linkText, string $target, array $conf): LinkResultInterface
     {
+        $this->lastLinkText = $linkText;
+        $this->lastTarget = $target;
         return new LinkResult('type', 'url');
     }
 

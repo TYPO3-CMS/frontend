@@ -59,7 +59,7 @@ abstract class AbstractTypolinkBuilder
         // This one is in order to keep BC for v14 as we avoid adding the abstract method "build" to implement by subclasses
         $this->contentObjectRenderer = $contentObjectRenderer;
         if (method_exists($this, 'build')) {
-            return $this->build($linkDetails, '', '', $conf);
+            return $this->build($linkDetails, $linkText, $target, $conf);
         }
         throw new UnableToLinkException('Invalid link builder, so ' . $linkText . ' was not linked.', 1756746193, null, $linkText);
     }
