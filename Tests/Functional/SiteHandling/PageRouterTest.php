@@ -19,9 +19,16 @@ namespace TYPO3\CMS\Frontend\Tests\Functional\SiteHandling;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
+use Psr\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\DependencyInjection\Container;
+use TYPO3\CMS\Core\EventDispatcher\EventDispatcher;
+use TYPO3\CMS\Core\EventDispatcher\ListenerProvider;
+use TYPO3\CMS\Core\Http\Uri;
 use TYPO3\CMS\Core\Localization\LanguageServiceFactory;
+use TYPO3\CMS\Core\Routing\Event\AfterPageUriGeneratedEvent;
 use TYPO3\CMS\Core\Routing\PageRouter;
 use TYPO3\CMS\Core\Site\SiteFinder;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\TestingFramework\Core\Functional\Framework\DataHandling\Scenario\DataHandlerFactory;
 use TYPO3\TestingFramework\Core\Functional\Framework\DataHandling\Scenario\DataHandlerWriter;
 
@@ -78,5 +85,42 @@ final class PageRouterTest extends AbstractTestCase
         $pageRouter = new PageRouter($this->siteFinder->getSiteByIdentifier('acme-com'));
         $result = $pageRouter->generateUri(1000, $parameters);
         self::assertSame($expectation, (string)$result);
+    }
+
+    #[Test]
+    public function generateUriDispatchesAfterPageUriGeneratedEvent(): void
+    {
+        $eventCapture = new class () {
+            public ?AfterPageUriGeneratedEvent $event = null;
+            public ?string $dispatchedUri = null;
+        };
+
+        /** @var Container $container */
+        $container = $this->getContainer();
+        $container->set(
+            'after-page-uri-generated-test-listener',
+            static function (AfterPageUriGeneratedEvent $event) use ($eventCapture): void {
+                $eventCapture->event = $event;
+                $eventCapture->dispatchedUri = (string)$event->getUri();
+                $event->setUri(new Uri('https://typo3.org/custom-page'));
+            }
+        );
+        $listenerProvider = $this->get(ListenerProvider::class);
+        $listenerProvider->addListener(AfterPageUriGeneratedEvent::class, 'after-page-uri-generated-test-listener');
+
+        GeneralUtility::setSingletonInstance(EventDispatcherInterface::class, new EventDispatcher($listenerProvider));
+
+        $pageRouter = new PageRouter($this->siteFinder->getSiteByIdentifier('acme-com'));
+        $result = $pageRouter->generateUri(1000, [], 'my-fragment');
+
+        self::assertSame('https://typo3.org/custom-page', (string)$result);
+        self::assertNotNull($eventCapture->event);
+        self::assertSame('https://acme.us/#my-fragment', $eventCapture->dispatchedUri);
+        self::assertSame(1000, $eventCapture->event->getRoute());
+        self::assertSame([], $eventCapture->event->getParameters());
+        self::assertSame('my-fragment', $eventCapture->event->getFragment());
+        self::assertSame('', $eventCapture->event->getType());
+        self::assertSame(0, $eventCapture->event->getLanguage()->getLanguageId());
+        self::assertSame('acme-com', $eventCapture->event->getSite()->getIdentifier());
     }
 }
