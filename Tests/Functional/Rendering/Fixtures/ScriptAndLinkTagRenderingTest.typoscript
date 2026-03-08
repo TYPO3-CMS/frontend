@@ -8,6 +8,8 @@ page {
     alternateCSS.alternate = yes
     alternateCSS.media = print
     alternateCSS.title = Dummy
+    alternateCSS.crossorigin = anonymous
+    alternateCSS.integrity = auto
 
     dataCSS = {$dataCSS}
     dataCSS.somethingCustom = someValue
@@ -26,6 +28,8 @@ page {
     alternateCSS.alternate = yes
     alternateCSS.media = print
     alternateCSS.title = Dummy
+    alternateCSS.crossorigin = example.com
+    alternateCSS.integrity = 4711
 
     dataCSS = {$dataCSSLib}
     dataCSS.somethingCustom = someValue
@@ -38,8 +42,8 @@ page {
 
     alternateJS = {$alternateJS}
     alternateJS.type = text/plain
-    alternateJS.crossorigin = example.com
-    alternateJS.integrity = 4711
+    alternateJS.crossorigin = anonymous
+    alternateJS.integrity = auto
     alternateJS.defer = 1
     alternateJS.nomodule = 1
 

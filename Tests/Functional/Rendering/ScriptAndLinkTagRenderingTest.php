@@ -95,6 +95,8 @@ final class ScriptAndLinkTagRenderingTest extends FunctionalTestCase
             ])
         );
         $content = (string)$response->getBody();
+        // remove cache busting `?1774699233` from markup
+        $content = preg_replace('/\?\d{10,}(?=")/', '', $content);
 
         $expectations = [
             'forceOnTopCSS'         => '<link rel="stylesheet" href="/typo3conf/ext/test_resource_rendering/Resources/Public/forceOnTop.css" media="all">',
@@ -103,9 +105,9 @@ final class ScriptAndLinkTagRenderingTest extends FunctionalTestCase
             'forceOnTopJSLib'       => '<script src="/typo3conf/ext/test_resource_rendering/Resources/Public/forceOnTopLib.js"></script>',
             'forceOnTopJSLibFooter' => '<script src="/typo3conf/ext/test_resource_rendering/Resources/Public/forceOnTopLibFooter.js"></script>',
 
-            'alternateCSS'          => '<link rel="alternate stylesheet" href="/typo3conf/ext/test_resource_rendering/Resources/Public/alternate.css" media="print" title="Dummy">',
-            'alternateCSSLib'       => '<link rel="alternate stylesheet" href="/typo3conf/ext/test_resource_rendering/Resources/Public/alternateLib.css" media="print" title="Dummy">',
-            'alternateJS'           => '<script src="/typo3conf/ext/test_resource_rendering/Resources/Public/alternate.js" type="text/plain" defer="defer" nomodule="nomodule" integrity="4711" crossorigin="example.com"></script>',
+            'alternateCSS'          => '<link rel="alternate stylesheet" href="/typo3conf/ext/test_resource_rendering/Resources/Public/alternate.css" media="print" title="Dummy" integrity="sha256-7Op3Y+qrb1U9n1iebx5IvOIeBikAsR+QEoEuKerZDUU=" crossorigin="anonymous">',
+            'alternateCSSLib'       => '<link rel="alternate stylesheet" href="/typo3conf/ext/test_resource_rendering/Resources/Public/alternateLib.css" media="print" title="Dummy" integrity="4711" crossorigin="example.com">',
+            'alternateJS'           => '<script src="/typo3conf/ext/test_resource_rendering/Resources/Public/alternate.js" type="text/plain" defer="defer" nomodule="nomodule" integrity="sha256-lXecaELOga5RF43SGiSETJfbXRDMJs4VepZRfLWFD2c=" crossorigin="anonymous"></script>',
             'alternateJSLib'        => '<script src="/typo3conf/ext/test_resource_rendering/Resources/Public/alternateLib.js" type="text/plain" defer="defer" nomodule="nomodule" integrity="4711" crossorigin="example.com"></script>',
             'alternateJSLibFooter'  => '<script src="/typo3conf/ext/test_resource_rendering/Resources/Public/alternateLibFooter.js" type="text/plain" defer="defer" nomodule="nomodule" integrity="4711" crossorigin="example.com"></script>',
 

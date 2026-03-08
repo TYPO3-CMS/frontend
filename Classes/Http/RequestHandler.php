@@ -447,6 +447,7 @@ readonly class RequestHandler implements RequestHandlerInterface
                 } catch (SystemResourceException) {
                     continue;
                 }
+                $crossOrigin = (string)($cssResourceConfig['crossorigin'] ?? '');
                 $additionalAttributes = $this->cleanupAdditionalAttributeKeys($additionalAttributes, 'css');
                 $this->pageRenderer->addCssFile(
                     $cssResource,
@@ -459,7 +460,9 @@ readonly class RequestHandler implements RequestHandlerInterface
                     null,
                     $cssResourceConfig['allWrap.']['splitChar'] ?? '|',
                     (bool)($cssResourceConfig['inline'] ?? false),
-                    $additionalAttributes
+                    $additionalAttributes,
+                    $cssResourceConfig['integrity'] ?? '',
+                    $crossOrigin
                 );
             }
         }
@@ -477,6 +480,7 @@ readonly class RequestHandler implements RequestHandlerInterface
                 } catch (SystemResourceException) {
                     continue;
                 }
+                $crossOrigin = (string)($cssResourceConfig['crossorigin'] ?? '');
                 $additionalAttributes = $this->cleanupAdditionalAttributeKeys($additionalAttributes, 'css');
                 $this->pageRenderer->addCssLibrary(
                     $cssResource,
@@ -489,7 +493,9 @@ readonly class RequestHandler implements RequestHandlerInterface
                     null,
                     $cssResourceConfig['allWrap.']['splitChar'] ?? '|',
                     (bool)($cssResourceConfig['inline'] ?? false),
-                    $additionalAttributes
+                    $additionalAttributes,
+                    $cssResourceConfig['integrity'] ?? '',
+                    $crossOrigin
                 );
             }
         }
@@ -943,7 +949,9 @@ readonly class RequestHandler implements RequestHandlerInterface
                 $additionalAttributes['media'],
                 $additionalAttributes['title'],
                 $additionalAttributes['inline'],
-                $additionalAttributes['internal']
+                $additionalAttributes['internal'],
+                $additionalAttributes['integrity'],
+                $additionalAttributes['crossorigin']
             );
         }
         if ($cleanupType === 'js') {
