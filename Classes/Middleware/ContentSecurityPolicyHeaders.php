@@ -25,8 +25,8 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use TYPO3\CMS\Core\Cache\Frontend\FrontendInterface;
 use TYPO3\CMS\Core\Core\RequestId;
-use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Configuration\Behavior;
-use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Configuration\DispositionMapFactory;
+use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Configuration\CspConfigurationFactory;
+use TYPO3\CMS\Core\Security\ContentSecurityPolicy\DirectiveHashCollection;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Middleware\PolicyBag;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Middleware\ResponseService;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\PolicyProvider;
@@ -46,8 +46,9 @@ final readonly class ContentSecurityPolicyHeaders implements MiddlewareInterface
         #[Autowire(service: 'cache.assets')]
         private FrontendInterface $cache,
         private PolicyProvider $policyProvider,
-        private DispositionMapFactory $dispositionMapFactory,
+        private CspConfigurationFactory $cspConfigurationFactory,
         private ResponseService $responseService,
+        private DirectiveHashCollection $directiveHashCollection,
     ) {}
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
@@ -67,17 +68,16 @@ final readonly class ContentSecurityPolicyHeaders implements MiddlewareInterface
     private function applyContentSecurityPolicy(ServerRequestInterface $request, ResponseInterface|RequestHandlerInterface $subject): ResponseInterface
     {
         $site = $request->getAttribute('site');
-        $dispositionMap = $this->dispositionMapFactory->buildDispositionMap(
-            $site instanceof Site ? ($site->getConfiguration()['contentSecurityPolicies'] ?? []) : []
-        );
+        $cspConfiguration = $site instanceof Site ? ($site->getConfiguration()['contentSecurityPolicies'] ?? []) : [];
+        $dispositionMap = $this->cspConfigurationFactory->buildDispositionMap($cspConfiguration);
+        $behavior = $this->cspConfigurationFactory->buildBehavior($cspConfiguration);
         // return early in case CSP shall not be used
         if ($dispositionMap->keys() === []) {
             return $subject instanceof RequestHandlerInterface ? $subject->handle($request) : $subject;
         }
         $scope = Scope::frontendSite($site);
-        $behavior = new Behavior();
         $nonce = $this->requestId->nonce;
-        $policyBag = new PolicyBag($scope, $dispositionMap, $behavior, $nonce);
+        $policyBag = new PolicyBag($scope, $dispositionMap, $behavior, $nonce, $this->directiveHashCollection);
         // make sure, the nonce value is set before processing the remaining components
         $request = $request
             ->withAttribute('nonce', $nonce)
@@ -102,10 +102,10 @@ final readonly class ContentSecurityPolicyHeaders implements MiddlewareInterface
             }
             $response = $response->withHeader(
                 $disposition->getHttpHeaderName(),
-                $policy->compile($this->requestId->nonce, $behavior, $this->cache)
+                $policy->compile($policyBag, $this->cache)
             );
         }
-        if (!$processedEarlier && $behavior->useNonce === false) {
+        if (!$processedEarlier && $policyBag->behavior->useNonce === false) {
             $response = $this->responseService->dropNonceFromHtmlResponse($response, $nonce);
         }
         return $response;

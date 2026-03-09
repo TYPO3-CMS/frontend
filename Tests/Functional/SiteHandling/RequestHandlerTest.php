@@ -200,7 +200,7 @@ final class RequestHandlerTest extends AbstractTestCase
                         '10.' => [
                             'template' => 'TEXT',
                             'template.' => [
-                                'value' => '<f:asset.script identifier="test" useNonce="true">console.log(true);</f:asset.script>',
+                                'value' => '<f:asset.script identifier="test" csp="true">console.log(true);</f:asset.script>',
                             ],
                         ],
                     ],

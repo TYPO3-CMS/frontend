@@ -36,7 +36,7 @@ class ContentSecurityPolicyReporter extends AbstractContentSecurityPolicyReporte
         $site = $request->getAttribute('site');
         $scope = Scope::frontendSite($site);
         if ($this->targetsCspReportUri($scope, $request)) {
-            $dispositionMap = $this->dispositionMapFactory->buildDispositionMap(
+            $dispositionMap = $this->cspConfigurationFactory->buildDispositionMap(
                 $site instanceof Site ? ($site->getConfiguration()['contentSecurityPolicies'] ?? []) : []
             );
             // find at least one configured reporting endpoint for the current request

@@ -18,6 +18,7 @@ declare(strict_types=1);
 namespace TYPO3\CMS\Frontend\Cache;
 
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
+use TYPO3\CMS\Core\Security\ContentSecurityPolicy\DirectiveHashCollection;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\ModelService;
 use TYPO3\CMS\Core\Security\ContentSecurityPolicy\PolicyRegistry;
 
@@ -32,12 +33,14 @@ readonly class MetaDataState
     public function __construct(
         private ModelService $modelService,
         private PolicyRegistry $policyRegistry,
+        private DirectiveHashCollection $directiveHashCollection,
     ) {}
 
     public function getState(): array
     {
         return [
             'PolicyRegistry::$mutationCollections' => json_encode($this->policyRegistry->getMutationCollections()),
+            'HashCollection' => json_encode($this->directiveHashCollection),
         ];
     }
 
@@ -48,25 +51,41 @@ readonly class MetaDataState
                 case 'PolicyRegistry::$mutationCollections':
                     $this->updatePolicyRegistryMutationCollections($value);
                     break;
+                case 'HashCollection':
+                    $this->updateHashCollection($value);
+                    break;
             }
         }
     }
 
     private function updatePolicyRegistryMutationCollections(mixed $value): void
     {
+        $array = $this->decodeJsonString($value);
+        if (is_array($array)) {
+            $this->policyRegistry->setMutationsCollections(
+                ...array_map($this->modelService->buildMutationCollectionFromArray(...), $array)
+            );
+        }
+    }
+
+    private function updateHashCollection(mixed $value): void
+    {
+        $array = $this->decodeJsonString($value);
+        if (is_array($array)) {
+            $this->directiveHashCollection->updateFromJson($array);
+        }
+    }
+
+    private function decodeJsonString(mixed $value): ?array
+    {
         if (!is_string($value) || $value === '') {
-            return;
+            return null;
         }
         try {
             $array = json_decode($value, true, 512, \JSON_THROW_ON_ERROR);
         } catch (\JsonException) {
-            return;
+            return null;
         }
-        if (!is_array($array)) {
-            return;
-        }
-        $this->policyRegistry->setMutationsCollections(
-            ...array_map($this->modelService->buildMutationCollectionFromArray(...), $array)
-        );
+        return is_array($array) ? $array : null;
     }
 }
