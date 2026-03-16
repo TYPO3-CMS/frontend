@@ -70,7 +70,7 @@ readonly class LinkFactory
             $linkParameter = trim((string)($linkConfiguration['parameter'] ?? ''));
         }
         try {
-            [$linkParameter, $target, $classList, $title, $rel] = $this->resolveTypolinkParameterString($linkParameter, $linkConfiguration);
+            [$linkParameter, $target, $classList, $title, $rel, $download] = $this->resolveTypolinkParameterString($linkParameter, $linkConfiguration);
         } catch (UnableToLinkException $e) {
             $this->logger->warning($e->getMessage(), ['linkConfiguration' => $linkConfiguration]);
             throw $e;
@@ -99,6 +99,10 @@ readonly class LinkFactory
         // Class attribute, will override any class attribute from ->addAdditionalAnchorTagAttributes()
         if (!empty($classList)) {
             $linkResult = $linkResult->withAttribute('class', $classList);
+        }
+        // Download attribute
+        if ($download !== '') {
+            $linkResult = $linkResult->withAttribute('download', $download === 'true' ? '' : $download);
         }
 
         if ($linkConfiguration['userFunc'] ?? false) {
@@ -242,6 +246,7 @@ readonly class LinkFactory
             $linkParameterParts['class'],
             $linkParameterParts['title'],
             $linkParameterParts['rel'] ?? '',
+            $linkParameterParts['download'] ?? '',
         ];
     }
 
