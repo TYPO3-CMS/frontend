@@ -24,6 +24,8 @@ use TYPO3\CMS\Core\Core\SystemEnvironmentBuilder;
 use TYPO3\CMS\Core\Http\ServerRequest;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\StorageRepository;
+use TYPO3\CMS\Core\TypoScript\AST\Node\RootNode;
+use TYPO3\CMS\Core\TypoScript\FrontendTypoScript;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
 use TYPO3\CMS\Frontend\Imaging\GifBuilder;
@@ -36,8 +38,6 @@ final class GifBuilderTest extends FunctionalTestCase
         $this->importCSVDataSet(__DIR__ . '/../Fixtures/sys_file_storage.csv');
         $this->importCSVDataSet(__DIR__ . '/../Fixtures/be_users.csv');
         $this->setUpBackendUser(1);
-        $GLOBALS['TYPO3_REQUEST'] = (new ServerRequest('https://www.example.com/'))
-            ->withAttribute('applicationType', SystemEnvironmentBuilder::REQUESTTYPE_BE);
         GeneralUtility::mkdir_deep(Environment::getPublicPath() . '/fileadmin');
     }
 
@@ -100,7 +100,15 @@ final class GifBuilderTest extends FunctionalTestCase
             Environment::getPublicPath() . '/fileadmin/kasper-skarhoj-gifbuilder.jpg'
         );
 
-        $result = $this->get(ContentObjectRenderer::class)->cObjGetSingle(
+        $frontendTypoScript = new FrontendTypoScript(new RootNode(), [], [], []);
+        $frontendTypoScript->setConfigArray([]);
+        $request = (new ServerRequest('https://www.example.com/'))
+            ->withAttribute('applicationType', SystemEnvironmentBuilder::REQUESTTYPE_BE)
+            ->withAttribute('frontend.typoscript', $frontendTypoScript);
+        $contentObjectRenderer = $this->get(ContentObjectRenderer::class);
+        $contentObjectRenderer->setRequest($request);
+
+        $result = $contentObjectRenderer->cObjGetSingle(
             'IMAGE',
             [
                 'file' => 'GIFBUILDER',
@@ -129,7 +137,12 @@ final class GifBuilderTest extends FunctionalTestCase
             Environment::getPublicPath() . '/fileadmin/kasper-skarhoj-gifbuilder-imageresource.jpg'
         );
 
-        $result = $this->get(ContentObjectRenderer::class)->cObjGetSingle(
+        $request = (new ServerRequest('https://www.example.com/'))
+            ->withAttribute('applicationType', SystemEnvironmentBuilder::REQUESTTYPE_BE);
+        $contentObjectRenderer = $this->get(ContentObjectRenderer::class);
+        $contentObjectRenderer->setRequest($request);
+
+        $result = $contentObjectRenderer->cObjGetSingle(
             'IMG_RESOURCE',
             [
                 'file' => 'GIFBUILDER',
@@ -158,7 +171,15 @@ final class GifBuilderTest extends FunctionalTestCase
             Environment::getPublicPath() . '/fileadmin/kasper-skarhoj-gifbuilder.jpg'
         );
 
-        $result = $this->get(ContentObjectRenderer::class)->cObjGetSingle(
+        $frontendTypoScript = new FrontendTypoScript(new RootNode(), [], [], []);
+        $frontendTypoScript->setConfigArray([]);
+        $request = (new ServerRequest('https://www.example.com/'))
+            ->withAttribute('applicationType', SystemEnvironmentBuilder::REQUESTTYPE_BE)
+            ->withAttribute('frontend.typoscript', $frontendTypoScript);
+        $contentObjectRenderer = $this->get(ContentObjectRenderer::class);
+        $contentObjectRenderer->setRequest($request);
+
+        $result = $contentObjectRenderer->cObjGetSingle(
             'IMAGE',
             [
                 'file' => 'GIFBUILDER',

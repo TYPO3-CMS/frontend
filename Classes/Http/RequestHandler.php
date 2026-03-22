@@ -347,7 +347,7 @@ readonly class RequestHandler implements RequestHandlerInterface
         if ($siteLanguage->getLocale()->isRightToLeftLanguageDirection()) {
             $htmlTagAttributes['dir'] = 'rtl';
         }
-        $docType = $this->pageRenderer->getDocType();
+        $docType = DocType::createFromConfigurationKey($typoScriptConfigArray['doctype'] ?? '');
         // Set document type
         $docTypeParts = [];
         $xmlDocument = true;
@@ -864,7 +864,7 @@ readonly class RequestHandler implements RequestHandlerInterface
         if ($typoScriptConfigArray['disableHrefLang'] ?? false) {
             return;
         }
-        $endingSlash = $this->pageRenderer->getDocType()->isXmlCompliant() ? '/' : '';
+        $endingSlash = DocType::createFromConfigurationKey($typoScriptConfigArray['doctype'] ?? '')->isXmlCompliant() ? '/' : '';
         $hrefLangs = $this->eventDispatcher->dispatch(new ModifyHrefLangTagsEvent($request))->getHrefLangs();
         if (count($hrefLangs) > 1) {
             $data = [];

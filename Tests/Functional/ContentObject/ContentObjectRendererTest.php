@@ -51,10 +51,8 @@ use TYPO3\CMS\Core\LinkHandling\LinkService;
 use TYPO3\CMS\Core\LinkHandling\TypoLinkCodecService;
 use TYPO3\CMS\Core\Localization\LanguageService;
 use TYPO3\CMS\Core\Localization\LanguageServiceFactory;
-use TYPO3\CMS\Core\Localization\Locale;
 use TYPO3\CMS\Core\Log\Logger;
 use TYPO3\CMS\Core\Package\PackageManager;
-use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Resource\Exception\InvalidPathException;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\FileReference;
@@ -64,7 +62,6 @@ use TYPO3\CMS\Core\Service\DependencyOrderingService;
 use TYPO3\CMS\Core\Site\Entity\Site;
 use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
 use TYPO3\CMS\Core\Site\SiteFinder;
-use TYPO3\CMS\Core\Type\DocType;
 use TYPO3\CMS\Core\TypoScript\AST\AstBuilder;
 use TYPO3\CMS\Core\TypoScript\AST\Node\RootNode;
 use TYPO3\CMS\Core\TypoScript\FrontendTypoScript;
@@ -947,12 +944,12 @@ content="benni">',
             'no xhtml with LF in between' => [
                 'one<br>' . chr(10) . 'two',
                 'one' . chr(10) . 'two',
-                null,
+                '',
             ],
             'no xhtml with LF in between and around' => [
                 '<br>' . chr(10) . 'one<br>' . chr(10) . 'two<br>' . chr(10),
                 chr(10) . 'one' . chr(10) . 'two' . chr(10),
-                null,
+                '',
             ],
             'xhtml with LF in between' => [
                 'one<br />' . chr(10) . 'two',
@@ -969,13 +966,16 @@ content="benni">',
 
     #[DataProvider('stdWrap_brDataProvider')]
     #[Test]
-    public function stdWrap_br(string $expected, string $input, ?string $doctype): void
+    public function stdWrap_br(string $expected, string $input, string $doctype): void
     {
-        $pageRenderer = $this->get(PageRenderer::class);
-        $request = (new ServerRequest())->withAttribute('applicationType', SystemEnvironmentBuilder::REQUESTTYPE_BE);
-        $pageRenderer->setLanguage(new Locale(), $request);
-        $pageRenderer->setDocType(DocType::createFromConfigurationKey($doctype), $request);
+        $frontendTypoScript = new FrontendTypoScript(new RootNode(), [], [], []);
+        $frontendTypoScript->setSetupArray([]);
+        $frontendTypoScript->setConfigArray(['doctype' => $doctype]);
+        $request = (new ServerRequest())
+            ->withAttribute('applicationType', SystemEnvironmentBuilder::REQUESTTYPE_BE)
+            ->withAttribute('frontend.typoscript', $frontendTypoScript);
         $subject = $this->get(ContentObjectRenderer::class);
+        $subject->setRequest($request);
         self::assertSame($expected, $subject->stdWrap_br($input));
     }
 

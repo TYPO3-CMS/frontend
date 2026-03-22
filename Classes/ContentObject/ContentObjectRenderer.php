@@ -56,7 +56,6 @@ use TYPO3\CMS\Core\Localization\LanguageServiceFactory;
 use TYPO3\CMS\Core\Localization\Locales;
 use TYPO3\CMS\Core\Page\DefaultJavaScriptAssetTrait;
 use TYPO3\CMS\Core\Page\PageLayoutResolver;
-use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Resource\Exception;
 use TYPO3\CMS\Core\Resource\Exception\ResourceDoesNotExistException;
 use TYPO3\CMS\Core\Resource\File;
@@ -77,6 +76,7 @@ use TYPO3\CMS\Core\SystemResource\SystemResourceFactory;
 use TYPO3\CMS\Core\Text\TextCropper;
 use TYPO3\CMS\Core\TimeTracker\TimeTracker;
 use TYPO3\CMS\Core\Type\BitSet;
+use TYPO3\CMS\Core\Type\DocType;
 use TYPO3\CMS\Core\TypoScript\TypoScriptService;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\DebugUtility;
@@ -410,7 +410,6 @@ class ContentObjectRenderer
         // similar to PageRenderer and Context, which are designed in a similar way.
         private readonly TimeTracker $timeTracker,
         private readonly TcaSchemaFactory $tcaSchemaFactory,
-        private readonly PageRenderer $pageRenderer,
     ) {}
 
     public function setRequest(ServerRequestInterface $request): void
@@ -2019,7 +2018,7 @@ class ContentObjectRenderer
      */
     public function stdWrap_br($content = ''): string
     {
-        return nl2br($content, $this->pageRenderer->getDocType()->isXmlCompliant());
+        return nl2br($content, DocType::createFromRequest($this->getRequest())->isXmlCompliant());
     }
 
     /**

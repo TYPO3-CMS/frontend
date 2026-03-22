@@ -20,6 +20,7 @@ use TYPO3\CMS\Core\Page\AssetCollector;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\FileReference;
 use TYPO3\CMS\Core\Service\MarkerBasedTemplateService;
+use TYPO3\CMS\Core\Type\DocType;
 use TYPO3\CMS\Core\TypoScript\TypoScriptService;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\ContentObject\Event\ModifyImageSourceCollectionEvent;
@@ -97,7 +98,7 @@ class ImageContentObject extends AbstractContentObject
             'params' => $params,
             'altParams' => $altParam,
             'sourceCollection' => $sourceCollection,
-            'selfClosingTagSlash' => $this->getPageRenderer()->getDocType()->isXmlCompliant() ? ' /' : '',
+            'selfClosingTagSlash' => DocType::createFromRequest($this->request)->isXmlCompliant() ? ' /' : '',
         ];
 
         $theValue = $this->markerTemplateService->substituteMarkerArray($imageTagTemplate, $imageTagValues, '###|###', true, true);
@@ -164,6 +165,8 @@ class ImageContentObject extends AbstractContentObject
             $srcLayoutOptionSplitted = $typoScriptService->explodeConfigurationForOptionSplit((array)$conf['layout.'][$layoutKey . '.'], count($activeSourceCollections));
             $eventDispatcher = GeneralUtility::makeInstance(EventDispatcherInterface::class);
 
+            $isXmlCompliant = DocType::createFromRequest($this->request)->isXmlCompliant();
+
             // render sources
             foreach ($activeSourceCollections as $key => $sourceConfiguration) {
                 $sourceLayout = $this->cObj->stdWrapValue('source', $srcLayoutOptionSplitted[$key] ?? []);
@@ -218,7 +221,7 @@ class ImageContentObject extends AbstractContentObject
                     }
 
                     $sourceConfiguration['src'] = htmlspecialchars($urlPrefix . $imageResource->getPublicUrl());
-                    $sourceConfiguration['selfClosingTagSlash'] = $this->getPageRenderer()->getDocType()->isXmlCompliant() ? ' /' : '';
+                    $sourceConfiguration['selfClosingTagSlash'] = $isXmlCompliant ? ' /' : '';
 
                     $oneSourceCollection = $this->markerTemplateService->substituteMarkerArray($sourceLayout, $sourceConfiguration, '###|###', true, true);
 

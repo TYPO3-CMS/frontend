@@ -28,8 +28,6 @@ use TYPO3\CMS\Frontend\ContentObject\Exception\ContentRenderingException;
  */
 abstract class AbstractContentObject
 {
-    protected ?PageRenderer $pageRenderer = null;
-
     /**
      * Always set via setRequest() by ContentObjectFactory after instantiation
      */
@@ -72,12 +70,12 @@ abstract class AbstractContentObject
         return GeneralUtility::makeInstance(PageRepository::class);
     }
 
+    /**
+     * @deprecated since TYPO3 v14, will be removed in TYPO3 v15.
+     */
     protected function getPageRenderer(): PageRenderer
     {
-        if ($this->pageRenderer === null) {
-            $this->pageRenderer = GeneralUtility::makeInstance(PageRenderer::class);
-        }
-
-        return $this->pageRenderer;
+        trigger_error('AbstractContentObject->getPageRenderer() is deprecated since version 14.3. Use dependency injection to retrieve an instance if needed.', E_USER_DEPRECATED);
+        return GeneralUtility::makeInstance(PageRenderer::class);
     }
 }
