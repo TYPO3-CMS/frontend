@@ -318,6 +318,45 @@ final class SlugLinkGeneratorTest extends AbstractTestCase
         self::assertSame($expectation, (string)$response->getBody());
     }
 
+    #[Test]
+    public function linkIsGeneratedWithQueryParametersArray(): void
+    {
+        $response = $this->executeFrontendSubRequest(
+            (new InternalRequest('https://acme.us/'))
+                ->withPageId(1100)
+                ->withInstructions([
+                    $this->createTypoLinkUrlInstruction([
+                        'parameter' => 1100,
+                        'queryParameters' => ['testing' => ['value' => '1']],
+                    ]),
+                ])
+        );
+
+        // Must produce the same URL as additionalParams string equivalent
+        self::assertSame('/welcome?testing%5Bvalue%5D=1&cHash=1a3af6ba153b6210cf8abb271ca8b360b9b06163a22790a43540df76ded1ba31', (string)$response->getBody());
+    }
+
+    #[Test]
+    public function queryParametersArrayOverridesAdditionalParams(): void
+    {
+        $response = $this->executeFrontendSubRequest(
+            (new InternalRequest('https://acme.us/'))
+                ->withPageId(1100)
+                ->withInstructions([
+                    $this->createTypoLinkUrlInstruction([
+                        'parameter' => 1100,
+                        'additionalParams' => '&testing[value]=old&testing[other]=keep',
+                        'queryParameters' => ['testing' => ['value' => 'new']],
+                    ]),
+                ])
+        );
+
+        $url = (string)$response->getBody();
+        self::assertStringContainsString('testing%5Bvalue%5D=new', $url);
+        self::assertStringContainsString('testing%5Bother%5D=keep', $url);
+        self::assertStringNotContainsString('old', $url);
+    }
+
     public static function linkIsGeneratedForRestrictedPageDataProvider(): array
     {
         $instructions = [

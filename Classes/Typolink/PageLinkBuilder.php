@@ -102,6 +102,7 @@ class PageLinkBuilder extends AbstractTypolinkBuilder implements TypolinkBuilder
         $this->contentObjectRenderer = $contentObjectRenderer;
         $target = $linkDetails['target'] ?? '';
         $configuration['additionalParams'] = $configuration['additionalParams'] ?? '';
+        $configuration['queryParameters'] = (array)($configuration['queryParameters'] ?? []);
         $treatAsExternalLink = false;
         $url = null;
         $linkResultType = '';
@@ -339,6 +340,9 @@ class PageLinkBuilder extends AbstractTypolinkBuilder implements TypolinkBuilder
             $addQueryParams = '';
         }
         parse_str($addQueryParams, $queryParameters);
+        if (!empty($conf['queryParameters']) && is_array($conf['queryParameters'])) {
+            $queryParameters = array_replace_recursive($queryParameters, $conf['queryParameters']);
+        }
         $linkVars = $this->calculateGlobalQueryParameters();
         if ($linkVars !== '') {
             $globalQueryParameters = [];

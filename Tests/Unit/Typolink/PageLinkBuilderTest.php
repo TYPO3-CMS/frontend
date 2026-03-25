@@ -65,6 +65,71 @@ final class PageLinkBuilderTest extends UnitTestCase
         self::assertEquals($expectedResult, $actualResult);
     }
 
+    public static function calculateQueryParametersWithQueryParametersOptionDataProvider(): \Generator
+    {
+        yield 'queryParameters alone' => [
+            ['queryParameters' => ['foo' => 'bar', 'baz' => 'qux']],
+            [],
+            ['foo' => 'bar', 'baz' => 'qux'],
+        ];
+        yield 'queryParameters with nested array' => [
+            ['queryParameters' => ['tx_news' => ['id' => '42', 'category' => '5']]],
+            [],
+            ['tx_news' => ['id' => '42', 'category' => '5']],
+        ];
+        yield 'queryParameters overrides additionalParams' => [
+            [
+                'additionalParams' => '&foo=old&keep=yes',
+                'queryParameters' => ['foo' => 'new'],
+            ],
+            [],
+            ['foo' => 'new', 'keep' => 'yes'],
+        ];
+        yield 'queryParameters deep merge with additionalParams' => [
+            [
+                'additionalParams' => '&tx_ext[action]=list&tx_ext[format]=html',
+                'queryParameters' => ['tx_ext' => ['action' => 'show']],
+            ],
+            [],
+            ['tx_ext' => ['action' => 'show', 'format' => 'html']],
+        ];
+        yield 'empty queryParameters does not affect additionalParams' => [
+            [
+                'additionalParams' => '&foo=bar',
+                'queryParameters' => [],
+            ],
+            [],
+            ['foo' => 'bar'],
+        ];
+        yield 'queryParameters with linkDetails parameters' => [
+            [
+                'queryParameters' => ['foo' => 'bar'],
+            ],
+            ['parameters' => 'from=link'],
+            ['from' => 'link', 'foo' => 'bar'],
+        ];
+    }
+
+    #[DataProvider('calculateQueryParametersWithQueryParametersOptionDataProvider')]
+    #[Test]
+    public function calculateQueryParametersWithQueryParametersOption(array $conf, array $linkDetails, array $expectedResult): void
+    {
+        $conf['additionalParams'] = $conf['additionalParams'] ?? '';
+        $conf['queryParameters'] = (array)($conf['queryParameters'] ?? []);
+        $request = new ServerRequest('https://example.com');
+        $request = $request->withAttribute('routing', new PageArguments(1, '', [], [], []));
+        $cObj = $this->createMock(ContentObjectRenderer::class);
+        $cObj->method('getRequest')->willReturn($request);
+        $cObj->method('stdWrapValue')->willReturnCallback(
+            static fn(string $key, array $config) => $config[$key] ?? ''
+        );
+        $subject = $this->getAccessibleMock(PageLinkBuilder::class, ['calculateGlobalQueryParameters'], [], '', false);
+        $subject->method('calculateGlobalQueryParameters')->willReturn('');
+        $subject->_set('contentObjectRenderer', $cObj);
+        $actualResult = $subject->_call('calculateQueryParameters', $conf, $linkDetails);
+        self::assertEquals($expectedResult, $actualResult);
+    }
+
     /**
      * Encodes square brackets in URL for a better readability in these tests.
      */
