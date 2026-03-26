@@ -5513,8 +5513,15 @@ content="benni">',
     public function getDataWithTypeGetindpenv(): void
     {
         $subject = $this->get(ContentObjectRenderer::class);
-        GeneralUtility::setIndpEnv('SCRIPT_FILENAME', 'dummyPath');
-        self::assertEquals('dummyPath', $subject->getData('getindpenv:SCRIPT_FILENAME', []));
+        $normalizedParams = NormalizedParams::createFromServerParams([
+            'HTTP_HOST' => 'example.com',
+            'REMOTE_ADDR' => '123.45.67.89',
+        ]);
+        $request = (new ServerRequest('https://example.com/'))
+            ->withAttribute('normalizedParams', $normalizedParams)
+            ->withAttribute('applicationType', SystemEnvironmentBuilder::REQUESTTYPE_FE);
+        $subject->setRequest($request);
+        self::assertEquals('123.45.67.89', $subject->getData('getindpenv:REMOTE_ADDR', []));
     }
 
     #[Test]

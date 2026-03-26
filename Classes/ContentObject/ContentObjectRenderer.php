@@ -3669,11 +3669,32 @@ class ContentObjectRenderer
                         $retVal = getenv($key);
                         break;
                     case 'getindpenv':
-                        if ($key === 'REQUEST_URI') {
-                            $retVal = $this->getRequest()->getAttribute('normalizedParams')->getRequestUri();
-                        } else {
-                            $retVal = GeneralUtility::getIndpEnv($key);
-                        }
+                        $normalizedParams = $this->getRequest()->getAttribute('normalizedParams');
+                        $retVal = match ($key) {
+                            'HTTP_HOST' => $normalizedParams->getHttpHost(),
+                            'TYPO3_HOST_ONLY' => $normalizedParams->getRequestHostOnly(),
+                            'TYPO3_PORT' => $normalizedParams->getRequestPort(),
+                            'PATH_INFO' => $normalizedParams->getPathInfo(),
+                            'QUERY_STRING' => $normalizedParams->getQueryString(),
+                            'REQUEST_URI' => $normalizedParams->getRequestUri(),
+                            'HTTP_REFERER' => $normalizedParams->getHttpReferer(),
+                            'TYPO3_REQUEST_HOST' => $normalizedParams->getRequestHost(),
+                            'TYPO3_REQUEST_URL' => $normalizedParams->getRequestUrl(),
+                            'TYPO3_REQUEST_SCRIPT' => $normalizedParams->getRequestScript(),
+                            'TYPO3_REQUEST_DIR' => $normalizedParams->getRequestDir(),
+                            'TYPO3_SITE_URL' => $normalizedParams->getSiteUrl(),
+                            'TYPO3_SITE_SCRIPT' => $normalizedParams->getSiteScript(),
+                            'TYPO3_SSL' => $normalizedParams->isHttps(),
+                            'TYPO3_REV_PROXY' => $normalizedParams->isBehindReverseProxy(),
+                            'SCRIPT_NAME' => $normalizedParams->getScriptName(),
+                            'TYPO3_DOCUMENT_ROOT' => $normalizedParams->getDocumentRoot(),
+                            'SCRIPT_FILENAME' => $normalizedParams->getScriptFilename(),
+                            'REMOTE_ADDR' => $normalizedParams->getRemoteAddress(),
+                            'REMOTE_HOST' => $normalizedParams->getRemoteHost(),
+                            'HTTP_USER_AGENT' => $normalizedParams->getHttpUserAgent(),
+                            'HTTP_ACCEPT_LANGUAGE' => $normalizedParams->getHttpAcceptLanguage(),
+                            default => null,
+                        };
                         break;
                     case 'field':
                         $retVal = $this->getGlobal($key, $fieldArray);
