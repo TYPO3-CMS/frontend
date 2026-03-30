@@ -4431,7 +4431,7 @@ content="benni">',
                 [
                     'parameter' => 'http://typo3.org _blank url-class "Open new window" - nofollow',
                 ],
-                '<a href="http://typo3.org" target="_blank" rel="noreferrer nofollow" title="Open new window" class="url-class">TYPO3</a>',
+                '<a href="http://typo3.org" target="_blank" rel="nofollow noreferrer" title="Open new window" class="url-class">TYPO3</a>',
             ],
             'Link to url with rel attribute in parameter without target' => [
                 'TYPO3',
